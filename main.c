@@ -9,30 +9,27 @@
 int map [31][31];
 const int shiftX[8] = {-1,-1, 0, 1, 1, 1, 0, -1}, shiftY[8] = {0, -1, -1, -1, 0, 1, 1, 1};
 
-
-
-
 int odw [31][31];
-int que [900][900][2];
+int que [90000][900][2];
 
-void copy_que(int *nque, int *slot, int ad){
-    for(int i=0; i < *slot; i++){
-        que[*nque+ad][i][0]=que[*nque+ad][i][0];
-        que[*nque+ad][i][1]=que[*nque+ad][i][1];
+void copy_que(int nque, int slot, int ad){
+    for(int i=0; i < slot; i++){
+        que[nque+ad][i][0]=que[nque][i][0];
+        que[nque+ad][i][1]=que[nque][i][1];
     }
 }
 
 int cycle(int color, int x, int y, int finx, int finy, int *nque, int *slot){
     que [*nque][*slot][0]=x;
     que [*nque][*slot][1]=y;
-    *slot++;
+    *slot= *slot + 1;
     odw[x][y]=1;
     for(int i=0; i < 8; i++){
         if(x + shiftX[i] == finx && y + shiftY[i] == finy){
             return 1; //cycle exist
         }
         else if(map[x+shiftX[i]][y+shiftY[i]] == color && odw[x+shiftX[i]][y+shiftY[i]] == 0 ){
-            copy_que(nque, slot, i+1);
+            copy_que(*nque, *slot, i+1);
 
             cycle(color, x+shiftX[i], y + shiftY[i], finx, finy, nque+i+1, slot);
         }
@@ -43,20 +40,17 @@ int cycle(int color, int x, int y, int finx, int finy, int *nque, int *slot){
 int pom[31][31];
 
 void ownership(int *count_p, int *count_o, int maxl, int maxu){
-    for(int i = maxu +1 ; i < 30; i++){
-        for(int j = maxl +1; i < 30; i++){
+    for(int i = maxu +1 ; i < 31; i++){
+        for(int j = maxl +1; i < 31; i++){
             int color = map[i][j];
             int nque=0;
             int slot=0;
             if(color != 0){
                 if(cycle(color, i, j, i, j, &nque, &slot)==1){
                     //change the color
-                    for(int h=0; h<=slot; h++){
-                        pom[que[nque][h][0]][que[nque][h][1]]=1;
-                    }
-
                     int up=-1, down=35, left=35, right=-1;
-                    for(int h=0; h<=slot; h++){
+                    for(int h=0; h<slot; h++){
+                        pom[que[nque][h+1][0]][que[nque][h+1][1]]=1;
                         if(que[nque][h][0] < down)
                             down = que[nque][h][0];
                         if(que[nque][h][0] > up)
@@ -82,6 +76,7 @@ void ownership(int *count_p, int *count_o, int maxl, int maxu){
             for(int k1=1; k1 < 31; k1++){
                 for(int k2=1; k2 < 31; k2++){
                     odw[k1][k2]=0;
+                    pom[k1][k2]=0;
                 }
             }
         }
