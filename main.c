@@ -154,7 +154,6 @@ void ownership(int *count_p, int *count_o, int maxl, int maxu){
                     odw[k1][k2] = 0;
                 }
             }
-            //print_map();
         }
     }
 }
@@ -272,7 +271,7 @@ int main(){
         //check if the moves that were made change the ownership of dots and change the array if needed
         ownership(&count_p, &count_o, maxl, maxu);
 
-        printf("Wanna surrender? 1 or 0\n");
+        printf("Do you want to stop the game? Enter 1 to end\n");
         int sur;
         scanf("%d", &sur);
         if (sur == 1){
