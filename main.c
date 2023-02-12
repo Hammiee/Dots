@@ -6,84 +6,16 @@
 //#include "capture.h"
 
 
+
+
+
+
+
 int map [31][31];
-const int shiftX[8] = {-1,-1, 0, 1, 1, 1, 0, -1}, shiftY[8] = {0, -1, -1, -1, 0, 1, 1, 1};
+const int shiftX[8] = {-1,-1, 0, 1, 1, 1, 0, -1}, shiftY[8] = {0, -1, -1, -1, 0, 1, 1, 1};  
 
 int odw [31][31];
 int que [90000][900][2];
-
-void copy_que(int nque, int slot, int ad){
-    for(int i=0; i < slot; i++){
-        que[nque+ad][i][0]=que[nque][i][0];
-        que[nque+ad][i][1]=que[nque][i][1];
-    }
-}
-
-int cycle(int color, int x, int y, int finx, int finy, int *nque, int *slot){
-    que [*nque][*slot][0]=x;
-    que [*nque][*slot][1]=y;
-    *slot= *slot + 1;
-    odw[x][y]=1;
-    for(int i=0; i < 8; i++){
-        if(x + shiftX[i] == finx && y + shiftY[i] == finy){
-            return 1; //cycle exist
-        }
-        else if(map[x+shiftX[i]][y+shiftY[i]] == color && odw[x+shiftX[i]][y+shiftY[i]] == 0 ){
-            copy_que(*nque, *slot, i+1);
-
-            cycle(color, x+shiftX[i], y + shiftY[i], finx, finy, nque+i+1, slot);
-        }
-    }
-    return 0; //no cycle
-}
-
-int pom[31][31];
-
-void ownership(int *count_p, int *count_o, int maxl, int maxu){
-    for(int i = maxu +1 ; i < 31; i++){
-        for(int j = maxl +1; i < 31; i++){
-            int color = map[i][j];
-            int nque=0;
-            int slot=0;
-            if(color != 0){
-                if(cycle(color, i, j, i, j, &nque, &slot)==1){
-                    //change the color
-                    int up=-1, down=35, left=35, right=-1;
-                    for(int h=0; h<slot; h++){
-                        pom[que[nque][h+1][0]][que[nque][h+1][1]]=1;
-                        if(que[nque][h][0] < down)
-                            down = que[nque][h][0];
-                        if(que[nque][h][0] > up)
-                            up = que[nque][h][0];
-                        if(que[nque][h][1] < left)
-                            left = que[nque][h][0];
-                        if(que[nque][h][1] > right)
-                            right = que[nque][h][0];
-                    }
-                    int change=0;
-                    for(int h = left; h <= right; h++ ){
-                        for(int g = down; g <= up; g++){
-                            if(pom[h][g]==1){
-                                change++;
-                            }
-                            if(change%2==1){
-                                map[h][g]=color;
-                            }
-                        }
-                    }
-                }
-            }
-            for(int k1=1; k1 < 31; k1++){
-                for(int k2=1; k2 < 31; k2++){
-                    odw[k1][k2]=0;
-                    pom[k1][k2]=0;
-                }
-            }
-        }
-    }
-}
-
-
 
 
 
@@ -119,6 +51,120 @@ void print_map(){
         printf("\n");
     }
 }
+
+
+
+
+void copy_que(int nque, int slot, int ad){
+    for(int i=0; i <slot; i++){
+        que[nque+ad][i][0]=que[nque][i][0];
+        que[nque+ad][i][1]=que[nque][i][1];
+    }
+}
+
+void cycle(int color, int x, int y, int finx, int finy, int nque, int slot, int *num_que, int *slots){
+    que [nque][slot][0]=x;
+    que [nque][slot][1]=y;
+    slot= slot + 1;
+    odw[x][y]=1;
+    for(int i=0; i < 8; i++){
+        if(x + shiftX[i] == finx && y + shiftY[i] == finy && slot > 3 ){
+            *num_que=nque;
+            *slots = slot;
+            break;
+            //return 1; //cycle exist
+        }
+        else if(map[x+shiftX[i]][y+shiftY[i]] == color && odw[x+shiftX[i]][y+shiftY[i]] == 0 ){
+            copy_que(nque, slot, i+1);
+
+            cycle(color, x+shiftX[i], y + shiftY[i], finx, finy, nque+i+1, slot, num_que, slots);
+        }
+    }
+    //return 0; //no cycle
+}
+
+int pom[31][31];
+
+void ownership(int *count_p, int *count_o, int maxl, int maxu){
+    for(int i = maxu  ; i < 31; i++){
+        for(int j = maxl ; j < 31; j++){
+            int color = map[i][j];
+            int nque=0;
+            int slot=0;
+            if(color != 0){
+                cycle(color, i, j, i, j, nque, slot, &nque, &slot);
+                if(nque != 0){
+                    //change the color
+                    int up=-1, down=35, left=35, right=-1;
+                    for(int h=0; h<slot; h++){
+                        pom[que[nque][h][0]][que[nque][h][1]]=1;
+                        if(que[nque][h][0] < down)
+                            down = que[nque][h][0];
+                        if(que[nque][h][0] > up)
+                            up = que[nque][h][0];
+                        if(que[nque][h][1] < left)
+                            left = que[nque][h][1];
+                        if(que[nque][h][1] > right)
+                            right = que[nque][h][1];
+                    }
+                    for(int h = down; h <= up; h++ ){
+                        int change=0;
+                        int close=0;
+                        for(int  g = left; g <= right; g++){
+                            if(pom[h][g]==1){
+                                change++;
+                                close=0;
+                                for(int index = g+1; index <= right; index++){
+                                    if(pom[h][index]==1){
+                                        close++;
+                                    }
+                                }
+                            }
+                            if(change%2==1 && close%2 == 1){
+                                if(map[h][g]!= color){
+                                    if(map[h][g]==0){
+                                        if(color == 1){
+                                            *count_o = *count_o + 1;
+                                        }
+                                        if(color == 2){
+                                            *count_p = *count_p + 1;
+                                        }
+                                    }
+                                    else{
+                                        if(color == 1){
+                                            *count_o = *count_o + 1;
+                                            *count_p = *count_p - 1;
+                                        }
+                                        if(color == 2){
+                                            *count_p = *count_p + 1;
+                                            *count_o = *count_o - 1;
+                                        }
+
+                                    }
+                                }
+                                map[h][g]=color;
+                            }
+                        }
+                    }
+                }
+            }
+            for(int k1=1; k1 < 31; k1++){
+                for(int k2=1; k2 < 31; k2++){
+                    pom[k1][k2] = 0;
+                    odw[k1][k2] = 0;
+                }
+            }
+            //print_map();
+        }
+    }
+}
+
+
+
+
+
+
+
 
 
 void bestof8(int *x_axis, int *y_axis, int *quality, int h, int i, int j){
@@ -235,11 +281,10 @@ int main(){
     }
     //print out the winner
     if(count_o > count_p)
-        printf("yOU lOsT!");
+        printf("yOU lOsT!\n");
     if(count_p > count_o)
-        printf("YOU WON");
+        printf("YOU WON\n");
     else
-        printf("it's a draw");
-
+        printf("it's a draw\n");
     return 0;
 }
