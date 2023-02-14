@@ -154,6 +154,7 @@ void ownership(int *count_p, int *count_o, int maxl, int maxu){
                     odw[k1][k2] = 0;
                 }
             }
+            //print_map();
         }
     }
 }
@@ -196,8 +197,8 @@ int place_dot(int maxu, int maxl){
         for(int j = maxl; j < 31; j++){
             if(map[i][j]==0){
                 end = 1;
-                for( int h= 0; h < 9 ;h++){
-                    if( i+shiftX[h] < 30 && i+shiftX[h] > 1 && j+shiftY[h] < 30 && j+shiftY[h] > 1){
+                for( int h = 0; h < 8 ; h++){
+                    if( i+shiftX[h] < 31 && i+shiftX[h] >= 1 && j+shiftY[h] < 31 && j+shiftY[h] >= 1){
                         bestof8(&x_axis, &y_axis, &quality, h, i, j);
                     }
                 }
@@ -254,14 +255,18 @@ int main(){
         count_o++;
         print_map();
         //player move
-        printf("Where do you want to place your dot? First row, then column \n");
-        scanf("%d %d", &x_axis, &y_axis);
+        printf("Where do you want to place your dot? First row, then column (If you wanna surrender enter -1) \n");
+        scanf("%d", &x_axis);
+        count_p++;
+        if(x_axis == -1){
+            break;
+        }
+        scanf("%d", &y_axis);
         while (map[x_axis][y_axis]!=0){
             printf("You cant place a dot here, try again\n");
             scanf("%d %d", &x_axis, &y_axis);
         }
         map[x_axis][y_axis]=2;
-        count_p++;
         if(maxl > y_axis)
             maxl=y_axis;
         if(maxu > x_axis)
@@ -270,18 +275,11 @@ int main(){
 
         //check if the moves that were made change the ownership of dots and change the array if needed
         ownership(&count_p, &count_o, maxl, maxu);
-
-        printf("Do you want to stop the game? Enter 1 to end\n");
-        int sur;
-        scanf("%d", &sur);
-        if (sur == 1){
-            break;
-        }
     }
     //print out the winner
     if(count_o > count_p)
         printf("yOU lOsT!\n");
-    if(count_p > count_o)
+    else if(count_p > count_o)
         printf("YOU WON\n");
     else
         printf("it's a draw\n");
